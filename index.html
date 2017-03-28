@@ -1,0 +1,76 @@
+  <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Simple Chat Application using Node.js and Socket.io</title>
+
+  <style>
+    .chat { display: none; }
+  </style>
+</head>
+<body>
+
+<form class="register" method="post" action="">
+  <input type="text" />
+  <input type="submit" value="Enter to chat" />
+</form>
+
+<form class="chat" method="post" action="">
+  <div>Hi, <span id="username">User</span></div>
+  <label>Send To:</label> <input id="recipient" /><br />
+  <label>Message: </label><br />
+  <textarea id="message"></textarea>
+  <input type="submit" value="Send" />
+
+  <ul id="messages">
+
+  </ul>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
+<script src="socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+  var username;
+  // give a new user a username
+  $(".register").on("submit", function(){
+
+    
+    username = $(this).children("input").val();
+    socket.emit("add-user", {"username": username});
+
+    // Rremove this registration form and now we will show chat form
+    $(this).remove();
+    $("#username").text(username);
+    chat_form.show();
+    return false;
+  });
+
+  // Chat form
+ var chat_form = $(".chat");
+ chat_form.on("submit", function(){
+
+   // Send the message to the server
+   socket.emit("private-message", {
+    "username": $(this).find("input:first").val(),
+    "content": $(this).find("textarea").val(),
+    "sendername":username
+   });
+
+   // Empty the form after a chat message has been sent
+   $(this).find("input:first, textarea").val('');
+  return false;
+ });
+
+ // append new messages to <ul>
+ socket.on("add-message", function(data){
+  if(data.content==="user_err"){
+    alert("this user does not exist");
+  }
+  else{
+  $("#messages").append("<li>"+data.sendername+" says : "+data.content+"</li>");
+ }}); 
+</script>
+</body>
+</html>
+
